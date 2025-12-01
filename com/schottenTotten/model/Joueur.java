@@ -1,143 +1,141 @@
 package com.schottenTotten.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Joueur {
-    
+
     private String nom;
-    private int numero; // 1 ou 2
-    private List<Carte> main;
-    private boolean estIA;
-    private int bornesGagnees;
-    
+    private int numero;          // 1 ou 2
+    private boolean estIA;       // true si c'est une IA, false si c'est un humain
+    private int bornesGagnees;   // nombre de bornes gagnées
+
+    // Gestion de la main avec un tableau simple
+    private Carte[] main;
+    private int nbCartesMain;    // nombre de cartes réellement dans la main
+    private static final int TAILLE_MAX_MAIN = 20; // taille max (large pour être tranquille)
+
     // Constructeur
     public Joueur(String nom, int numero, boolean estIA) {
         this.nom = nom;
         this.numero = numero;
         this.estIA = estIA;
-        this.main = new ArrayList<>();
         this.bornesGagnees = 0;
+
+        this.main = new Carte[TAILLE_MAX_MAIN];
+        this.nbCartesMain = 0;
     }
-    
+
     // Getters
     public String getNom() {
         return nom;
     }
-    
+
     public int getNumero() {
         return numero;
     }
-    
-    public List<Carte> getMain() {
-        return main;
-    }
-    
+
     public boolean estIA() {
         return estIA;
     }
-    
+
     public int getBornesGagnees() {
         return bornesGagnees;
     }
-    
+
+    public Carte[] getMain() {
+        return main;
+    }
+
     // Setters
     public void setNom(String nom) {
         this.nom = nom;
     }
-    
-    public void incrementerBornesGagnees() {
-        this.bornesGagnees++;
-    }
-    
+
     public void setBornesGagnees(int bornesGagnees) {
         this.bornesGagnees = bornesGagnees;
     }
-    
+
+    public void incrementerBornesGagnees() {
+        this.bornesGagnees++;
+    }
+
     // Gestion de la main
+
+    // Ajouter une carte dans la main
     public void ajouterCarte(Carte carte) {
-        if (carte != null) {
-            main.add(carte);
+        if (carte != null && nbCartesMain < TAILLE_MAX_MAIN) {
+            main[nbCartesMain] = carte;
+            nbCartesMain++;
         }
     }
-    
+
+    // Retirer une carte par son indice, et la renvoyer
     public Carte retirerCarte(int index) {
-        if (index >= 0 && index < main.size()) {
-            return main.remove(index);
+        if (index >= 0 && index < nbCartesMain) {
+            Carte carte = main[index];
+
+            // Décaler les cartes suivantes vers la gauche
+            for (int i = index; i < nbCartesMain - 1; i++) {
+                main[i] = main[i + 1];
+            }
+
+            // Libérer la dernière place
+            main[nbCartesMain - 1] = null;
+            nbCartesMain--;
+
+            return carte;
         }
         return null;
     }
-    
+
+    // Récupérer une carte sans la retirer
     public Carte getCarte(int index) {
-        if (index >= 0 && index < main.size()) {
-            return main.get(index);
+        if (index >= 0 && index < nbCartesMain) {
+            return main[index];
         }
         return null;
     }
-    
+
     public int getTailleMain() {
-        return main.size();
+        return nbCartesMain;
     }
-    
+
     public boolean mainVide() {
-        return main.isEmpty();
+        return (nbCartesMain == 0);
     }
-    
+
     public void viderMain() {
-        main.clear();
+        for (int i = 0; i < nbCartesMain; i++) {
+            main[i] = null;
+        }
+        nbCartesMain = 0;
     }
-    
-    // Affichage de la main
+
+    // Affichage simple de la main
     public String afficherMain() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Main de ").append(nom).append(" : \n");
-        if (main.isEmpty()) {
-            sb.append("  [Vide]\n");
+        String texte = "Main de " + nom + " :\n";
+
+        if (nbCartesMain == 0) {
+            texte += "  [Vide]\n";
         } else {
-            for (int i = 0; i < main.size(); i++) {
-                sb.append("  [").append(i).append("] ").append(main.get(i).description()).append("\n");
+            for (int i = 0; i < nbCartesMain; i++) {
+                texte += "  [" + i + "] " + main[i].description() + "\n";
             }
         }
-        return sb.toString();
+
+        return texte;
     }
+
     
-    // Affichage visuel stylisé de la main
-    public String afficherMainVisuel() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n╔════════════════════════════════════════╗\n");
-        sb.append("║  Main de ").append(nom);
-        int espacesNom = 30 - nom.length();
-        for (int i = 0; i < espacesNom; i++) {
-            sb.append(" ");
-        }
-        sb.append("║\n");
-        sb.append("╠════════════════════════════════════════╣\n");
-        
-        if (main.isEmpty()) {
-            sb.append("║  [Vide]                                ║\n");
-        } else {
-            for (int i = 0; i < main.size(); i++) {
-                String carteDesc = main.get(i).description();
-                sb.append("║  [").append(i).append("] ").append(carteDesc);
-                int espacesRestants = 32 - carteDesc.length();
-                for (int j = 0; j < espacesRestants; j++) {
-                    sb.append(" ");
-                }
-                sb.append("║\n");
-            }
-        }
-        
-        sb.append("╚════════════════════════════════════════╝\n");
-        return sb.toString();
-    }
-    
+
     @Override
     public String toString() {
-        return nom + " (Joueur " + numero + ", " + (estIA ? "IA" : "Humain") + ")";
+        String typeJoueur = estIA ? "IA" : "Humain";
+        return nom + " (Joueur " + numero + ", " + typeJoueur + ")";
     }
-    
-    // Méthode pour afficher les statistiques du joueur
+
+    // Afficher des infos sur le joueur
     public String afficherStats() {
-        return toString() + " - Bornes gagnées: " + bornesGagnees + " - Cartes en main: " + main.size();
+        return toString()
+               + " - Bornes gagnées: " + bornesGagnees
+               + " - Cartes en main: " + nbCartesMain;
     }
 }

@@ -144,7 +144,7 @@ public class Combinaison {
         }
     }
 
-   
+  @Override 
     public String toString() {
         return type.toString() + " (Somme: " + somme + ")";
     }

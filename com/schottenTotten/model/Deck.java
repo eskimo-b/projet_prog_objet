@@ -96,7 +96,7 @@ public class Deck {
         return cartes;
     }
 
-   
+   @Override
     public String toString() {
         return "Deck : " + nombreCartes + " cartes restantes";
     }
